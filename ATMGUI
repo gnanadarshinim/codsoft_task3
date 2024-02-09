@@ -1,0 +1,84 @@
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+
+public class ATMGUI extends Application {
+
+    private BankAccount bankAccount;
+
+    @Override
+    public void start(Stage primaryStage) {
+        // Initialize BankAccount with initial balance and PIN
+        bankAccount = new BankAccount(1000, "1234");
+
+        // GUI components
+        Label balanceLabel = new Label("Balance: $" + bankAccount.getBalance());
+        Button withdrawButton = new Button("Withdraw");
+        Button depositButton = new Button("Deposit");
+        Button historyButton = new Button("View Transaction History");
+
+        // Event handlers
+        withdrawButton.setOnAction(e -> {
+            String amountStr = showInputDialog("Enter withdrawal amount:");
+            if (amountStr != null) {
+                double amount = Double.parseDouble(amountStr);
+                if (bankAccount.withdraw(amount)) {
+                    balanceLabel.setText("Balance: $" + bankAccount.getBalance());
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Insufficient funds");
+                }
+            }
+        });
+
+        depositButton.setOnAction(e -> {
+            String amountStr = showInputDialog("Enter deposit amount:");
+            if (amountStr != null) {
+                double amount = Double.parseDouble(amountStr);
+                bankAccount.deposit(amount);
+                balanceLabel.setText("Balance: $" + bankAccount.getBalance());
+            }
+        });
+
+        historyButton.setOnAction(e -> {
+            StringBuilder history = new StringBuilder("Transaction History:\n");
+            for (Transaction transaction : bankAccount.getTransactionHistory()) {
+                history.append(transaction.getType())
+                        .append(" $")
+                        .append(transaction.getAmount())
+                        .append(" at ")
+                        .append(transaction.getDateTime())
+                        .append("\n");
+            }
+            showAlert(Alert.AlertType.INFORMATION, history.toString());
+        });
+
+        // Layout
+        VBox root = new VBox(10, balanceLabel, withdrawButton, depositButton, historyButton);
+        root.setPadding(new Insets(10));
+        Scene scene = new Scene(root, 300, 200);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("ATM Machine");
+        primaryStage.show();
+    }
+
+    private String showInputDialog(String message) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setHeaderText(message);
+        dialog.showAndWait();
+        return dialog.getResult();
+    }
+
+    private void showAlert(Alert.AlertType type, String message) {
+        Alert alert = new Alert(type);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
